@@ -9,6 +9,7 @@
 #define dirPin_rot 5
 #define stepPin_InOut 3
 #define dirPin_InOut 6
+#define enablePin 8
 
 #define rot_total_steps 16000.0
 #define inOut_total_steps 5760.0
@@ -36,6 +37,7 @@ float totalRevolutions = 0.0; // Tracks cumulative revolutions
 float maxSpeed = 5000;
 float maxAcceleration = 5000;
 long interpolationResolution = 0.001;
+int counter = 0;
 
 void setup()
 {
@@ -50,6 +52,11 @@ void setup()
     multiStepper.addStepper(rotStepper);
     multiStepper.addStepper(inOutStepper);
 
+#ifdef enablePin
+    // Set enable pin as output and enable the motors
+    pinMode(8, OUTPUT);
+    digitalWrite(8, LOW);
+#endif
     // Initialize serial communication
     Serial.begin(115200);
     Serial.println("R");
@@ -81,6 +88,15 @@ void resetTheta()
 
 void loop()
 {
+    if (batchComplete && bufferCount == 0){
+        if (counter > 100 ){
+        Serial.println("R");
+        counter = 0;
+        }
+        else{
+            counter++;
+    }
+
     // Check for incoming serial commands or theta-rho pairs
     if (Serial.available() > 0)
     {
